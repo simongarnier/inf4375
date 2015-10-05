@@ -26,21 +26,22 @@
                              (assoc memo (keyword k) (str/trim v))))
                       (sorted-map) headers)}))
 
-(defn -main
-  [& args]
-  (println "server accepting request")
-  (loop [server (new ServerSocket 8080)]
+(defn run-server [port]
+  (println (format "server accepting request on %s" port))
+  (loop [server (new ServerSocket port)]
     (let [socket (.accept server)]
       (println "request received")
       (let [out (new PrintWriter (.getOutputStream socket))
             in (new BufferedReader (new InputStreamReader (.getInputStream socket)))]
         (let [lines (consume-buffer in)]
           (if (not (empty? lines))
-            (pp/pprint (parse-request lines))
-            )
+            (pp/pprint (parse-request lines)))
           (recur server))))))
 
 
+(defn -main
+  ([] (run-server 8080))
+  ([arg] (run-server (Integer/parseInt arg))))
 
 
 
