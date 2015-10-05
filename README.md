@@ -1,36 +1,8 @@
 # inf4375-simple-server
 
-FIXME: description
+a simple web server in clojure for my delightful web class
 
-## Installation
+## Installation and usage
+You'll need [Clojure](http://clojure.org/getting_started) and [Leiningen](http://leiningen.org/#install) to run this thing. Once you're up and running just :
 
-Download from http://example.com/FIXME.
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar inf4375-simple-server-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2015 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+    $ lein run
