@@ -1,18 +1,16 @@
 (ns inf4375-simple-server.core
   (:gen-class)
-  (:import (java.io InputStreamReader PrintWriter BufferedReader)
+  (:import (java.io InputStreamReader PrintWriter BufferedReader ByteArrayOutputStream )
            (java.net ServerSocket))
   (:require [clojure.string :as str]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [me.raynes.fs   :as fs]))
 
 (defn consume-buffer [input]
   (loop  [lines '()]
     (if (.ready input)
-      (let [line (.readLine input)]
-        (if (str/blank? line)
-          lines
-          (recur(concat (concat lines (list line))))))
-      lines)))
+      (recur(concat lines (list (.readLine input))))
+      (remove (fn [l] (empty? l))lines))))
 
 (defn parse-request [lines]
   (let [[request-line & headers] lines
@@ -26,6 +24,30 @@
                              (assoc memo (keyword k) (str/trim v))))
                       (sorted-map) headers)}))
 
+(defn compose [lines]
+  (reduce
+    (fn [res, el] (str/join (list res el "\r\n")))
+    lines))
+
+(defmulti generate-response (fn [code _] code))
+(defmethod generate-response :404 [_ _]
+  (let [page-content "<h1>404 Not Found</h1>"]
+    (compose
+      (list
+        "HTTP/1.1 404 Not Found"
+        "Content-Type: text/html; charset=utf-8"
+        (format "content-length: %s" (count page-content))
+        ""
+        page-content))))
+
+(defmethod generate-response :200 [_ res-as-string]
+  (compose (list
+             "HTTP/1.1 200 OK"
+             "content-type: text/html; charset=utf-8"
+             (format "content-length: %s" (count res-as-string))
+             ""
+             res-as-string)))
+
 (defn run-server [port]
   (println (format "server accepting request on %s" port))
   (loop [server (new ServerSocket port)]
@@ -35,15 +57,23 @@
             in (new BufferedReader (new InputStreamReader (.getInputStream socket)))]
         (let [lines (consume-buffer in)]
           (if (not (empty? lines))
-            (pp/pprint (parse-request lines)))
+            (let [request (parse-request lines)]
+              (pp/pprint request)
+              (let [[_ & relative] ((request :request-line) :uri)]
+                (if (and (not (empty? relative)) (fs/exists? (str/join relative)))
+                  (.println out (generate-response :200 (slurp(str/join relative))))
+                  (.println out (generate-response :404 nil)))))
+            (.println out (generate-response :404 nil)))
+          (.flush out)
+          (.close out)
+          (.close in)
+          (.close socket)
           (recur server))))))
 
 
 (defn -main
   ([] (run-server 8080))
   ([arg] (run-server (Integer/parseInt arg))))
-
-
 
 
 
