@@ -1,0 +1,7 @@
+Pour les instructions d'éxécutions du serveur, voir README.md.
+
+La fonction principale est run-server. C'est elle qui ouvre un SocketServer sur le port spécifié, qui instancie le Socket et qui instancie les objets associé à l'output et à l'input.
+
+Quand le Socket reçoit une requête, run-server appelle la fonction consume-buffer qui vide le buffer et retourne les lignes dans un array. Par la suite, run-server passe cet array à la fonction parse-request, qui convertit l'array de la requête en un map.
+
+Après avoir récupéré le chemin du fichier dans le map de la requête, run-server verifie qu'il existe bien pour ensuite générer une réponse à l'aide de la fonction generate-response. Pour finir, run-server envoie la réponse sur l'output.
