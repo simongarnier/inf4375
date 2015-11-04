@@ -1,4 +1,4 @@
-(ns inf4375-simple-server.core
+(ns inf4375.core
   (:gen-class)
   (:import (java.io InputStreamReader PrintWriter BufferedReader)
            (java.net ServerSocket))
