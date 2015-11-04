@@ -1,4 +1,4 @@
-# inf4375-simple-server
+# inf4375-tp1
 
 a simple web server in clojure for my delightful web class
 
