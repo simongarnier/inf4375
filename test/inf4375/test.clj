@@ -1,7 +1,11 @@
-(ns inf4375.router-test
+(ns inf4375.test
   (:require [clojure.test :refer :all]
-            [inf4375.router :refer :all]))
+            [inf4375.core :refer :all]
+            [inf4375.router :refer :all]
+            [inf4375.model.tweet :refer :all]))
 
+
+; router
 (def demo-routes
   [
    ["" {:get :root-get}
@@ -38,3 +42,11 @@
   (testing "parent node should match"
     (binding [routes demo-routes]
       (is (= (match ["", "utilisateurs", "1234", "tweet"] :get) (list :unbound {}))))))
+
+
+; tweet model
+(deftest create-tweet
+  (testing "fetch a tweet after creation"
+    (let [m "my first tweet! #helloworld"
+          id (create m)]
+      (is (= (fetch id) {:id id :message m})))))
