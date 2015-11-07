@@ -1,8 +1,9 @@
 (ns inf4375.test
   (:require [clojure.test :refer :all]
             [inf4375.core :refer :all]
-            [inf4375.router :refer :all]
-            [inf4375.model.tweet :refer :all]))
+            [inf4375.router :as router]
+            [inf4375.model.tweet :as tweet]
+            [inf4375.model.user :as user]))
 
 
 ; router
@@ -18,35 +19,49 @@
       ["abonnements" {:get :user-abonnements-get}]]]]]
   )
 
-(deftest root
+(deftest router-root
   (testing "root should match empty"
-    (binding [routes demo-routes]
-      (is (= (match [""] :get) (list :root-get {}))))))
+    (binding [router/routes demo-routes]
+      (is (= (router/match [""] :get) (list :root-get {}))))))
 
-(deftest user
+(deftest router-user
   (testing "parent node should match"
-    (binding [routes demo-routes]
-      (is (= (match ["", "utilisateurs"] :get) (list :unbound {}))))))
+    (binding [router/routes demo-routes]
+      (is (= (router/match ["", "utilisateurs"] :get) (list :unbound {}))))))
 
-(deftest tweets
+(deftest router-tweets
   (testing "parent node should match"
-    (binding [routes demo-routes]
-      (is (= (match ["", "utilisateurs", "1234", "tweets"] :get) (list :user-tweets-get {:user-id "1234"}))))))
+    (binding [router/routes demo-routes]
+      (is (= (router/match ["", "utilisateurs", "1234", "tweets"] :get) (list :user-tweets-get {:user-id "1234"}))))))
 
-(deftest tweet-id
+(deftest router-tweet-id
   (testing "parent node should match"
-    (binding [routes demo-routes]
-      (is (= (match ["", "utilisateurs", "1234", "tweets", "5"] :get) (list :user-tweet-get {:user-id "1234" :tweet-id "5"}))))))
+    (binding [router/routes demo-routes]
+      (is (= (router/match ["", "utilisateurs", "1234", "tweets", "5"] :get) (list :user-tweet-get {:user-id "1234" :tweet-id "5"}))))))
 
-(deftest tweets-unbound
+(deftest router-tweets-unbound
   (testing "parent node should match"
-    (binding [routes demo-routes]
-      (is (= (match ["", "utilisateurs", "1234", "tweet"] :get) (list :unbound {}))))))
+    (binding [router/routes demo-routes]
+      (is (= (router/match ["", "utilisateurs", "1234", "tweet"] :get) (list :unbound {}))))))
 
 
 ; tweet model
-(deftest create-tweet
+(deftest tweet-create
   (testing "fetch a tweet after creation"
     (let [m "my first tweet! #helloworld"
-          id (create m)]
-      (is (= (fetch id) {:id id :message m})))))
+          id (tweet/create m)]
+      (is (= (tweet/fetch id) {:id id :message m})))))
+
+; user model
+(deftest user-create
+  (testing "fetch a user after creation"
+    (let [u1 "simongarnier"
+          u2 "camillegarnier"
+          id1 (user/create u1)
+          id2 (user/create u2)]
+      (is (and
+            (= (:handle (user/fetch id1)) u1 )
+            (= (:handle (user/fetch id2)) u2 ))))))
+
+(deftest user-tweet-as
+  (testing ""))

@@ -5,10 +5,20 @@
 (def tweets
   (atom {}))
 
-(defn create [message]
-  (let [id (util/gen-id)]
-    (swap! tweets conj {id {:id id :message message}})
-    id))
+(defn create
+  ; for a tweet
+  ([message]
+    (let [id (util/gen-id)]
+      (swap! tweets conj {id {:id id
+                              :message message}})
+      id))
+  ; for a retweet
+  ([message other-tweet-id]
+   (let [id (util/gen-id)]
+     (swap! tweets conj {id {:id id
+                             :message message
+                             :other-tweet-id other-tweet-id}})
+     id)))
 
 (defn all []
   @tweets)

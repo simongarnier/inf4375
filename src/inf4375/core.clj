@@ -9,7 +9,8 @@
             [inf4375.request :as request]
             [inf4375.response :as response]
             [inf4375.model.tweet :as tweet]
-            [inf4375.model.user :as user]))
+            [inf4375.model.user :as user]
+            [inf4375.model.subscriptions :as sub]))
 
 (def stub
   nil)
