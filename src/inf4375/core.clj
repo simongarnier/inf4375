@@ -4,32 +4,10 @@
            (java.net ServerSocket))
   (:require [clojure.string :as str]
             [clojure.pprint :as pp]
-            [me.raynes.fs   :as fs]
-            [inf4375.router :as router]
-            [inf4375.request :as request]
+            [me.raynes.fs :as fs]
+            [inf4375.controller :as controller]
             [inf4375.response :as response]
-            [inf4375.model.tweet :as tweet]
-            [inf4375.model.user :as user]
-            [inf4375.model.subscriptions :as sub]))
-
-(def stub
-  nil)
-
-(def service-routes
-  [
-   ["" {}
-    ["utilisateurs" {}
-     [":user-id" {}
-      ["fil" {:get stub}]
-      ["tweets" {:post stub
-                 :get stub}
-       [":tweet-id" {:delete stub}]]
-      ["retweets" {}
-       [":tweet-id" {:post stub
-                     :delete stub}]]
-      ["abonnements" {:get stub}
-       [":other-user-id"] {:put stub
-                           :delete stub}]]]]])
+            [clojure.data.json :as json]))
 
 (defn consume-buffer [input]
   "Consume a input buffer and gives it content as a list of string"
@@ -48,12 +26,9 @@
             in (new BufferedReader (new InputStreamReader (.getInputStream socket)))]
         (let [lines (consume-buffer in)]
           (if (not (empty? lines))
-            (let [request (request/parse-request lines)]
-              (pp/pprint request)
-              (let [[_ & relative] ((request :request-line) :uri)]
-                (if (and (not (empty? relative)) (fs/exists? (str/join relative)))
-                  (.println out (response/generate-response :200 (slurp(str/join relative))))
-                  (.println out (response/generate-response :404 nil)))))
+            (let []
+              (pp/pprint lines)
+              (pp/pprint (controller/resolve lines)))
             (.println out (response/generate-response :404 nil)))
           (.flush out)
           (.close out)

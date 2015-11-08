@@ -5,19 +5,21 @@
 (def tweets
   (atom {}))
 
-(defn create
+(defn create!
   ; for a tweet
   ([message]
     (let [id (util/gen-id)]
       (swap! tweets conj {id {:id id
-                              :message message}})
+                              :message message
+                              :timestamp (quot (System/currentTimeMillis) 1000) }})
       id))
   ; for a retweet
   ([message other-tweet-id]
    (let [id (util/gen-id)]
      (swap! tweets conj {id {:id id
                              :message message
-                             :other-tweet-id other-tweet-id}})
+                             :other-tweet-id other-tweet-id
+                             :timestamp (quot (System/currentTimeMillis) 1000) }})
      id)))
 
 (defn all []
@@ -26,5 +28,5 @@
 (defn fetch [id]
   (get @tweets id))
 
-(defn del [id]
+(defn del! [id]
   (swap! tweets dissoc id))

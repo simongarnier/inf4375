@@ -22,34 +22,34 @@
 (deftest router-root
   (testing "root should match empty"
     (binding [router/routes demo-routes]
-      (is (= (router/match [""] :get) (list :root-get {}))))))
+      (is (= (router/match [""] :get) (list :root-get '()))))))
 
 (deftest router-user
   (testing "parent node should match"
     (binding [router/routes demo-routes]
-      (is (= (router/match ["", "utilisateurs"] :get) (list :unbound {}))))))
+      (is (= (router/match ["", "utilisateurs"] :get) (list :unbound '()))))))
 
 (deftest router-tweets
   (testing "parent node should match"
     (binding [router/routes demo-routes]
-      (is (= (router/match ["", "utilisateurs", "1234", "tweets"] :get) (list :user-tweets-get {:user-id "1234"}))))))
+      (is (= (router/match ["", "utilisateurs", "1234", "tweets"] :get) (list :user-tweets-get '("1234")))))))
 
 (deftest router-tweet-id
   (testing "parent node should match"
     (binding [router/routes demo-routes]
-      (is (= (router/match ["", "utilisateurs", "1234", "tweets", "5"] :get) (list :user-tweet-get {:user-id "1234" :tweet-id "5"}))))))
+      (is (= (router/match ["", "utilisateurs", "1234", "tweets", "5"] :get) (list :user-tweet-get '("1234" "5")))))))
 
 (deftest router-tweets-unbound
   (testing "parent node should match"
     (binding [router/routes demo-routes]
-      (is (= (router/match ["", "utilisateurs", "1234", "tweet"] :get) (list :unbound {}))))))
+      (is (= (router/match ["", "utilisateurs", "1234", "tweet"] :get) (list :unbound '()))))))
 
 
 ; tweet model
 (deftest tweet-create
   (testing "fetch a tweet after creation"
     (let [m "my first tweet! #helloworld"
-          id (tweet/create m)]
+          id (tweet/create! m)]
       (is (= (tweet/fetch id) {:id id :message m})))))
 
 ; user model
@@ -57,11 +57,8 @@
   (testing "fetch a user after creation"
     (let [u1 "simongarnier"
           u2 "camillegarnier"
-          id1 (user/create u1)
-          id2 (user/create u2)]
+          id1 (user/create! u1)
+          id2 (user/create! u2)]
       (is (and
             (= (:handle (user/fetch id1)) u1 )
             (= (:handle (user/fetch id2)) u2 ))))))
-
-(deftest user-tweet-as
-  (testing ""))

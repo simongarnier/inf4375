@@ -23,28 +23,28 @@
 
 (defmethod matcher :wildcard [node, str]
   {:match? true
-   :params {(-> node node-res rest clojure.string/join keyword) str}
+   :param (list str)
    :node node})
 
 (defmethod matcher :res [node, str]
   {:match? (= (node-res node) str)
-   :params {}
+   :param '()
    :node node})
 
-(defn match [u method]
-  (loop [uri u nodes routes params {}]
-    (let [matcher-results (map (fn [node] (matcher node (first uri))) nodes)
+(defn match [resource method]
+  (loop [res resource nodes routes params {}]
+    (let [matcher-results (map (fn [node] (matcher node (first res))) nodes)
           matches (filter (fn [result] (get result :match?)) matcher-results)]
       (if (-> matches count (= 1)) ; check for a single match on current level
         (let [match (first matches)
               selected-node (get match :node)
-              params (merge params(get match :params))
+              params (concat params (:param match))
               func (-> selected-node node-dict (get method))
               children (node-children selected-node)]
-          (if-not (-> uri rest empty?) ; check if we are not at the end of the uri
-            (recur (rest uri) children params)
+          (if-not (-> res rest empty?) ; check if we are not at the end of the uri
+            (recur (rest res) children params)
             (if-not (nil? func) ; check if we have a function for the method
               (list func params)
-              (list unbound {}))))
-        (list unbound {})))))
+              (list unbound '()))))
+        (list unbound '())))))
 

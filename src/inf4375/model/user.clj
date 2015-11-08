@@ -9,23 +9,54 @@
 (def user-tweets
   (atom {}))
 
-(def user-retweet
+(def user-retweets
   (atom {}))
 
-(defn create [handle]
+(defn- associate! [rel user-id tweet-id]
+  (swap! rel conj {user-id (set (concat
+                                     (get @rel user-id)
+                                     (list tweet-id)))}))
+
+(defn- dissociate! [rel user-id tweet-id]
+  (let [tweet-list (get @rel user-id)
+        tweet-list-removed (remove (fn [t] (= t tweet-id)) tweet-list)]
+    (swap! rel conj {user-id tweet-list-removed})))
+
+(defn create! [handle]
   (let [id (util/gen-id)]
     (swap! users conj {id {:id id :handle handle}})
     (swap! user-tweets conj {id (set '())})
     id))
 
-(defn fetch [id]
-  (get @users id))
+(defn fetch [user-id]
+  (get @users user-id))
 
-(defn tweet-as [id message]
-  (let [tweet-id (tweet/create message)
-        tweet-list (get @user-tweets id)]
-    (swap! user-tweets conj {id (set (concat tweet-list (list tweet-id)))})
-    (tweet/fetch tweet-id)))
+(defn feed [user-id]
+  (sort-by (fn [tweet] (* (:timestamp tweet) -1))
+    (map (fn [tweet-id] (tweet/fetch tweet-id))
+         (concat (get @user-tweets user-id) (get @user-retweets user-id)))))
 
-(defn tweets [id]
-  (map (fn [tweet-id] (tweet/fetch tweet-id) )(get @user-tweets id)))
+(defn tweet-as!
+  ([id message]
+    (let [tweet-id (tweet/create! message)]
+      (associate! user-tweets id tweet-id)
+      tweet-id))
+  ([id message id-other-tweet]
+   (let [tweet-id (tweet/create! message id-other-tweet)]
+     (associate! user-retweets id tweet-id)
+     tweet-id)))
+
+(defn undo-retweet! [user-id, retweet-id]
+  (let [retweet-list (get @user-retweets user-id)]
+    (if (contains? retweet-list retweet-id)
+      (let []
+        (dissociate! user-retweets user-id retweet-id)
+        (tweet/del! retweet-id)
+        retweet-id)
+      nil)))
+
+(defn tweets [user-id]
+  (map (fn [tweet-id] (tweet/fetch tweet-id))(get @user-tweets user-id)))
+
+(defn retweets [user-id]
+  (map (fn [retweet-id] (tweet/fetch retweet-id)) (get @user-retweets user-id)))
