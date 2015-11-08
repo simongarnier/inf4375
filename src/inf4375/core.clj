@@ -28,7 +28,7 @@
           (if (not (empty? lines))
             (let []
               (pp/pprint lines)
-              (pp/pprint (controller/resolve lines)))
+              (pp/pprint (controller/resolve! lines)))
             (.println out (response/generate-response :404 nil)))
           (.flush out)
           (.close out)

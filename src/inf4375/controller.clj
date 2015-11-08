@@ -26,7 +26,7 @@
        [":other-user-id"] {"PUT" :impl
                            "DELETE" :impl}]]]]])
 
-(defn resolve [request-lines]
+(defn resolve! [request-lines]
   (binding [router/routes service-routes
             router/unbound :unbound]
     (let [request (req/request request-lines)
