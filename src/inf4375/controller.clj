@@ -1,8 +1,6 @@
 (ns inf4375.controller
   (:gen-class)
-  (:require [clojure.data.json :as json]
-
-            [inf4375.model.tweet :as tweet]
+  (:require [inf4375.model.tweet :as tweet]
             [inf4375.model.user :as user]
             [inf4375.model.subscriptions :as sub]
 
@@ -10,9 +8,7 @@
             [inf4375.response :as res]
 
             [inf4375.router :as router]
-            [clojure.string :as str]
-
-            [clojure.data.json :as json]))
+            [clojure.string :as str]))
 
 (def service-routes
   [
