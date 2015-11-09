@@ -16,24 +16,42 @@
 (defn node-res [node]
   (first node))
 
-(defmulti matcher
-          (fn [node, _] (if (-> node node-res (get 0) (= \:))
-                          :wildcard
-                          :res)))
+(defmulti match
+          (fn [node, _]
+            (-> node node-res (get 0))))
 
-(defmethod matcher :wildcard [node, str]
-  {:match? true
-   :param (list str)
-   :node node})
+(defmethod match \# [node, str-val]
+  "the numerical wildcard; will match any numerical value and return as int param
+   Perfect for IDs"
+  (let [num-check (re-matcher #"[\d.]+" str-val)
+        match (not (nil? num-check))
+        param (if match
+                (list (Integer/parseInt str-val))
+                (list))]
+    {:match? match
+     :param param
+     :node node}))
 
-(defmethod matcher :res [node, str]
-  {:match? (= (node-res node) str)
+(defmethod match \: [node, str-val]
+  "the string wildcard; will match any non-empty string and return as string param
+   Perfect for handles"
+  (let [match (empty? str-val)
+        param (if match
+                (list str-val)
+                (list))]
+    {:match? match
+     :param param
+     :node node}))
+
+(defmethod match :default [node, str-val]
+  "match for an exact value"
+  {:match? (= (node-res node) str-val)
    :param '()
    :node node})
 
-(defn match [resource method]
+(defn route [resource method]
   (loop [res resource nodes routes params {}]
-    (let [matcher-results (map (fn [node] (matcher node (first res))) nodes)
+    (let [matcher-results (map (fn [node] (match node (first res))) nodes)
           matches (filter (fn [result] (get result :match?)) matcher-results)]
       (if (-> matches count (= 1)) ; check for a single match on current level
         (let [match (first matches)

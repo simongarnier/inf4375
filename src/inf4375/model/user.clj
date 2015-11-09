@@ -28,6 +28,9 @@
     (swap! user-tweets conj {id (set '())})
     id))
 
+(defn all []
+  (vals @users))
+
 (defn fetch [user-id]
   (get @users user-id))
 
@@ -37,13 +40,17 @@
          (concat (get @user-tweets user-id) (get @user-retweets user-id)))))
 
 (defn tweet-as!
-  ([id message]
-    (let [tweet-id (tweet/create! message)]
-      (associate! user-tweets id tweet-id)
-      tweet-id))
-  ([id message id-other-tweet]
+  "tweet the given message as a user."
+  ([user-id message]
+   {:pre [(not (nil? (fetch user-id)))]}
+   (let [tweet-id (tweet/create! message)]
+     (associate! user-tweets user-id tweet-id)
+     tweet-id))
+  ([user-id message id-other-tweet]
+   {:pre [(not (nil? (fetch user-id)))
+          (not (nil? (tweet/fetch id-other-tweet)))]}
    (let [tweet-id (tweet/create! message id-other-tweet)]
-     (associate! user-retweets id tweet-id)
+     (associate! user-retweets user-id tweet-id)
      tweet-id)))
 
 (defn undo-retweet! [user-id, retweet-id]
@@ -57,6 +64,9 @@
 
 (defn tweets [user-id]
   (map (fn [tweet-id] (tweet/fetch tweet-id))(get @user-tweets user-id)))
+
+(defn tweet [user-id tweet-id]
+  (tweet/fetch (first (filter #(= % tweet-id) (get @user-tweets user-id)))))
 
 (defn retweets [user-id]
   (map (fn [retweet-id] (tweet/fetch retweet-id)) (get @user-retweets user-id)))

@@ -18,7 +18,18 @@
     (compose-list
       (list
         "HTTP/1.1 404 Not Found"
-        "Content-Type: text/html; charset=utf-8"
+        "Content-Type: application/json; charset=utf-8"
+        (format "content-length: %s" (count payload))
+        ""
+        payload))))
+
+(defmethod generate-response :400 [_ content]
+  (let [status {"status" "400 Bad Request"}
+        payload (json/write-str (conj status content))]
+    (compose-list
+      (list
+        "HTTP/1.1 400 Bad Request"
+        "Content-Type: application/json; charset=utf-8"
         (format "content-length: %s" (count payload))
         ""
         payload))))
@@ -29,7 +40,18 @@
     (compose-list
       (list
         "HTTP/1.1 200 OK"
-        "content-type: text/html; charset=utf-8"
+        "content-type: application/json; charset=utf-8"
+        (format "content-length: %s" (count payload))
+        ""
+        payload))))
+
+(defmethod generate-response :201 [_ content]
+  (let [status {"status" "201 Created"}
+        payload (json/write-str (conj status content))]
+    (compose-list
+      (list
+        "HTTP/1.1 200 Created"
+        "content-type: application/json; charset=utf-8"
         (format "content-length: %s" (count payload))
         ""
         payload))))

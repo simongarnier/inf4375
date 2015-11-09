@@ -2,19 +2,32 @@
   (:gen-class)
   (:import (java.io InputStreamReader PrintWriter BufferedReader)
            (java.net ServerSocket))
-  (:require [clojure.string :as str]
-            [clojure.pprint :as pp]
-            [me.raynes.fs :as fs]
+  (:require [clojure.pprint :as pp]
+            [clojure.data.json :as json]
+
             [inf4375.controller :as controller]
             [inf4375.response :as response]
-            [clojure.data.json :as json]))
+            [inf4375.request :as request]))
 
-(defn consume-buffer [input]
-  "Consume a input buffer and gives it content as a list of string"
-  (loop  [lines '()]
-    (if (.ready input)
-      (recur(concat lines (list (.readLine input))))
-      (remove (fn [l] (empty? l))lines))))
+(def service-routes
+  [
+   ["" {}
+    ["utilisateurs" {"GET" controller/get-users}
+     ["#user-id" {"GET" controller/get-users}
+      ["fil" {"GET" controller/get-user-feed}]
+
+      ["tweets" {"POST" controller/post-user-tweet
+                 "GET" controller/get-user-tweets}
+       ["#tweet-id" {"GET" controller/get-user-tweets
+                     "DELETE" :impl}]]
+
+      ["retweets" {}
+       ["#tweet-id" {"POST" :impl
+                     "DELETE" :impl}]]
+
+      ["abonnements" {"GET" :impl}
+       ["#other-user-id"] {"PUT" :impl
+                           "DELETE" :impl}]]]]])
 
 (defn run-server [port]
   "main server loop; will 404 if request is empty or not found"
@@ -24,21 +37,45 @@
       (println "request received")
       (let [out (new PrintWriter (.getOutputStream socket))
             in (new BufferedReader (new InputStreamReader (.getInputStream socket)))]
-        (let [lines (consume-buffer in)]
-          (if (not (empty? lines))
-            (let []
-              (pp/pprint lines)
-              (pp/pprint (controller/resolve! lines)))
-            (.println out (response/generate-response :404 nil)))
+        (let [request (request/read-request in)
+              parsed-body (try
+                            (json/read-str (:body request)
+                                           :key-fn #(keyword %))
+                            (catch Exception json-e
+                              nil))
+              response (if (nil? parsed-body)
+                         (controller/resolve! service-routes (:method request) (:uri request))
+                         (controller/resolve! service-routes (:method request) (:uri request) [parsed-body]))]
+          (pp/pprint request)
+          (.println out response)
           (.flush out)
           (.close out)
           (.close in)
           (.close socket)
           (recur server))))))
 
+(defn- initials []
+  (let [simon (inf4375.model.user/create! "simongarnier")
+        camille (inf4375.model.user/create! "camillegarnier")]
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! simon "my first tweet")
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! simon "my second tweet")
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! simon "my last tweet")
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! camille "my first tweet")
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! camille "my second tweet")
+    (Thread/sleep 1000)
+    (inf4375.model.user/tweet-as! camille "my last tweet")
+    (println "initials users and tweets created")))
+
 (defn -main
-  ([] (run-server 8080))
-  ([arg] (run-server (Integer/parseInt arg))))
-
-
+  ([]
+   (let [f (future (initials))
+         s (run-server 8080)]))
+  ([arg]
+   (let [f (future (initials))
+         s (run-server (Integer/parseInt arg))])))
 

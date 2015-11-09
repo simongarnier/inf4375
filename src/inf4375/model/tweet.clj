@@ -23,7 +23,7 @@
      id)))
 
 (defn all []
-  @tweets)
+  (vals @tweets))
 
 (defn fetch [id]
   (get @tweets id))

@@ -6,38 +6,65 @@
 
             [inf4375.request :as req]
             [inf4375.response :as res]
-
             [inf4375.router :as router]
-            [clojure.string :as str]))
 
-(def service-routes
-  [
-   ["" {}
-    ["utilisateurs" {}
-     [":user-id" {}
-      ["fil" {"GET" :impl}]
-      ["tweets" {"POST" :impl
-                 "GET" :impl}
-       [":tweet-id" {"DELETE" :impl}]]
-      ["retweets" {}
-       [":tweet-id" {"POST" :impl
-                     "DELETE" :impl}]]
-      ["abonnements" {"GET" :impl}
-       [":other-user-id"] {"PUT" :impl
-                           "DELETE" :impl}]]]]])
+            [clojure.string :as str]
+            [clojure.data.json :as json]))
 
-(defn resolve! [request-lines]
-  (binding [router/routes service-routes
-            router/unbound :unbound]
-    (let [request (req/request request-lines)
-          resources (str/split (req/uri request) #"/")
-          func-and-params (router/match
-                           (if (empty? resources)
-                             [""]
-                             resources)
-                           (req/method request))
-          function (first func-and-params)
-          params (last func-and-params)]
-      (apply function params))))
+(defn resolve!
+  ([routes method resource]
+   (resolve! routes method resource []))
+  ([routes method resource injected-params]
+    (binding [router/routes routes
+              router/unbound :unbound]
+      (let [resource-list (str/split resource #"/")
+            func-and-params (router/route
+                             (if (empty? resource-list)
+                               [""]
+                               resource-list)
+                             method)
+            function (first func-and-params)
+            params (last func-and-params)]
+        (apply function (concat params injected-params))))))
+
+(defn get-users
+  ([]
+   (res/generate-response :200 {"users" (user/all)}))
+  ([user-id]
+   (let [user (user/fetch user-id)]
+     (if (nil? user)
+       (res/generate-response :404 {"message" "utilisateur introuvable"})
+       (res/generate-response :200 {"user" user})))))
+
+(defn post-user-tweet [user-id body]
+  (let [user (user/fetch user-id)
+        message (:message body)]
+    (if (nil? user)
+      (res/generate-response :404 {"message" "utilisateur introuvable"})
+      (if (nil? message)
+        (res/generate-response :400 {"message" "Le json du tweet devrait contenir la clé message"})
+        (res/generate-response :200 {"tweet-id" (user/tweet-as! user-id message)})))))
+
+(defn get-user-tweets
+  ([user-id]
+   (let [user (user/fetch user-id)]
+     (if (nil? user)
+       (res/generate-response :404 {"message" "utilisateur introuvable"})
+       (res/generate-response :200 {"tweets" (user/tweets user-id)}))))
+  ([user-id tweet-id]
+   (let [user (user/fetch user-id)]
+     (if (nil? user)
+       (res/generate-response :404 {"message" "utilisateur introuvable"})
+       (let [tweet (user/tweet user-id tweet-id)]
+         (if (nil? tweet)
+           (res/generate-response :404 {"message" "tweet introuvable"})
+           (res/generate-response :200 {"tweet" tweet})))))))
+
+(defn get-user-feed [user-id]
+  (let [user (user/fetch user-id)]
+    (if (nil? user)
+      (res/generate-response :404 {"message" "utilisateur introuvable"})
+      (res/generate-response :200 {"fil" (user/feed user-id)}))))
+
 
 
