@@ -11,12 +11,15 @@
             [clojure.string :as str]
             [clojure.data.json :as json]))
 
+(defn not-found []
+  (res/generate-response :404 {"message" "ressource introuvable"}))
+
 (defn resolve!
   ([routes method resource]
    (resolve! routes method resource []))
   ([routes method resource injected-params]
     (binding [router/routes routes
-              router/unbound :unbound]
+              router/unbound not-found]
       (let [resource-list (str/split resource #"/")
             func-and-params (router/route
                              (if (empty? resource-list)
@@ -64,7 +67,7 @@
   (let [user (user/fetch user-id)]
     (if (nil? user)
       (res/generate-response :404 {"message" "utilisateur introuvable"})
-      (res/generate-response :200 {"fil" (user/feed user-id)}))))
+      (res/generate-response :200 {"feed" (user/feed user-id)}))))
 
 
 

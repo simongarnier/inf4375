@@ -6,3 +6,6 @@
 
 (defn gen-id []
   (swap! inc-seq inc))
+
+(defn stamp []
+  (quot (System/currentTimeMillis) 1000))

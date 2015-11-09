@@ -1,7 +1,8 @@
 (ns inf4375.model.user
   (:gen-class)
   (:require [inf4375.model-util :as util]
-            [inf4375.model.tweet :as tweet]))
+            [inf4375.model.tweet :as tweet]
+            [inf4375.model.retweet :as retweet]))
 
 (def users
   (atom {}))
@@ -41,24 +42,28 @@
 
 (defn tweet-as!
   "tweet the given message as a user."
-  ([user-id message]
-   {:pre [(not (nil? (fetch user-id)))]}
-   (let [tweet-id (tweet/create! message)]
-     (associate! user-tweets user-id tweet-id)
-     tweet-id))
-  ([user-id message id-other-tweet]
-   {:pre [(not (nil? (fetch user-id)))
-          (not (nil? (tweet/fetch id-other-tweet)))]}
-   (let [tweet-id (tweet/create! message id-other-tweet)]
-     (associate! user-retweets user-id tweet-id)
-     tweet-id)))
+  [user-id message]
+  {:pre [(not (nil? (fetch user-id)))]}
+  (let [tweet-id (tweet/create! message)]
+    (associate! user-tweets user-id tweet-id)
+    tweet-id))
+
+(defn retweet-as!
+  "retweet the given tweet as a user."
+  [user-id tweet-id author-id]
+  {:pre [(not (nil? (fetch user-id)))
+         (not (nil? (fetch author-id)))
+         (not (nil? (tweet/fetch tweet-id)))]}
+  (let [retweet-id (retweet/create! tweet-id author-id)]
+    (associate! user-retweets user-id retweet-id)
+    retweet-id))
 
 (defn undo-retweet! [user-id, retweet-id]
   (let [retweet-list (get @user-retweets user-id)]
     (if (contains? retweet-list retweet-id)
       (let []
         (dissociate! user-retweets user-id retweet-id)
-        (tweet/del! retweet-id)
+        (retweet/del! retweet-id)
         retweet-id)
       nil)))
 
@@ -69,4 +74,8 @@
   (tweet/fetch (first (filter #(= % tweet-id) (get @user-tweets user-id)))))
 
 (defn retweets [user-id]
-  (map (fn [retweet-id] (tweet/fetch retweet-id)) (get @user-retweets user-id)))
+  (map (fn [retweet-id] (retweet/fetch retweet-id)) (get @user-retweets user-id)))
+
+(defn retweet [user-id retweet-id]
+  (tweet/fetch (first (filter #(= % retweet-id) (get @user-retweets user-id)))))
+
