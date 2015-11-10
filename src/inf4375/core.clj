@@ -22,7 +22,7 @@
                      "DELETE" :impl}]]
 
       ["retweets" {}
-       ["#tweet-id" {"POST" :impl
+       ["#tweet-id" {"PUT" :impl
                      "DELETE" :impl}]]
 
       ["abonnements" {"GET" :impl}
