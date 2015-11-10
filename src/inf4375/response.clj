@@ -50,7 +50,7 @@
         payload (json/write-str (conj status content))]
     (compose-list
       (list
-        "HTTP/1.1 200 Created"
+        "HTTP/1.1 201 Created"
         "content-type: application/json; charset=utf-8"
         (format "content-length: %s" (count payload))
         ""

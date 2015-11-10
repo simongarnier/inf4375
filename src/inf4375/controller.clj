@@ -46,7 +46,7 @@
       (res/generate-response :404 {"message" "utilisateur introuvable"})
       (if (nil? message)
         (res/generate-response :400 {"message" "Le json du tweet devrait contenir la clé message"})
-        (res/generate-response :200 {"tweet-id" (user/tweet-as! user-id message)})))))
+        (res/generate-response :201 {"tweet-id" (user/tweet-as! user-id message)})))))
 
 (defn get-user-tweets
   ([user-id]
