@@ -50,7 +50,7 @@
    :node node})
 
 (defn route [resource method]
-  (loop [res resource nodes routes params {}]
+  (loop [res resource nodes routes params []]
     (let [matcher-results (map (fn [node] (match node (first res))) nodes)
           matches (filter (fn [result] (get result :match?)) matcher-results)]
       (if (-> matches count (= 1)) ; check for a single match on current level
