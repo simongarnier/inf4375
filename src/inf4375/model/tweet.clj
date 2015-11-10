@@ -5,10 +5,11 @@
 (def tweets
   (atom {}))
 
-(defn create! [message]
+(defn create! [message author-id]
   (let [id (util/gen-id)]
     (swap! tweets conj {id {:id id
                             :message message
+                            :author-id author-id
                             :timestamp (util/stamp)}})
     id))
 

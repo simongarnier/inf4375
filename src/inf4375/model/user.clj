@@ -44,17 +44,16 @@
   "tweet the given message as a user."
   [user-id message]
   {:pre [(not (nil? (fetch user-id)))]}
-  (let [tweet-id (tweet/create! message)]
+  (let [tweet-id (tweet/create! message user-id)]
     (associate! user-tweets user-id tweet-id)
     tweet-id))
 
 (defn retweet-as!
   "retweet the given tweet as a user."
-  [user-id tweet-id author-id]
+  [user-id tweet-id]
   {:pre [(not (nil? (fetch user-id)))
-         (not (nil? (fetch author-id)))
          (not (nil? (tweet/fetch tweet-id)))]}
-  (let [retweet-id (retweet/create! tweet-id author-id)]
+  (let [retweet-id (retweet/create! tweet-id user-id)]
     (associate! user-retweets user-id retweet-id)
     retweet-id))
 
