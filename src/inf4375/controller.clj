@@ -11,7 +11,7 @@
             [clojure.string :as str]
             [clojure.data.json :as json]))
 
-(defn not-found []
+(defn not-found [& args] ;any number of param because we don't care about arity
   (res/generate-response :404 {"message" "ressource introuvable"}))
 
 (defn resolve!
