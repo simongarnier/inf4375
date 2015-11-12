@@ -37,8 +37,12 @@
 
 (defn feed [user-id]
   (sort-by (fn [tweet] (* (:timestamp tweet) -1))
-    (map (fn [tweet-id] (tweet/fetch tweet-id))
-         (concat (get @user-tweets user-id) (get @user-retweets user-id)))))
+           (concat
+             (map (fn [tweet-id] (tweet/fetch tweet-id)) (get @user-tweets user-id))
+             (map
+               (fn [retweet-id] (let [retweet (retweet/fetch retweet-id)]
+                                  (conj retweet {:tweet (tweet/fetch (:tweet-id retweet))})))
+               (get @user-retweets user-id)))))
 
 (defn tweet-as!
   "tweet the given message as a user."
@@ -52,19 +56,23 @@
   "retweet the given tweet as a user."
   [user-id tweet-id]
   {:pre [(not (nil? (fetch user-id)))
-         (not (nil? (tweet/fetch tweet-id)))]}
+         (not (nil? (tweet/fetch tweet-id)))
+         (not (contains? (get @user-tweets user-id) tweet-id))]}
   (let [retweet-id (retweet/create! tweet-id user-id)]
     (associate! user-retweets user-id retweet-id)
     retweet-id))
 
-(defn undo-retweet! [user-id, retweet-id]
-  (let [retweet-list (get @user-retweets user-id)]
-    (if (contains? retweet-list retweet-id)
-      (let []
-        (dissociate! user-retweets user-id retweet-id)
-        (retweet/del! retweet-id)
-        retweet-id)
-      nil)))
+(defn undo-retweet! [user-id, tweet-id]
+  "undo all retweet retweeting the specified tweet for the user-id
+   and return the list of undone retweet"
+  (let [retweet-list (filter
+                       (fn [retweet] (= (:tweet-id retweet) tweet-id))
+                       (map #(retweet/fetch %) (get @user-retweets user-id)))]
+    (map (fn [retweet]
+           (let [id (:id retweet)]
+             (dissociate! user-retweets user-id id)
+             (retweet/del! id)
+             id)) retweet-list)))
 
 (defn tweets [user-id]
   (map (fn [tweet-id] (tweet/fetch tweet-id))(get @user-tweets user-id)))

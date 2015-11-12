@@ -6,7 +6,6 @@
             [clojure.data.json :as json]
 
             [inf4375.controller :as controller]
-            [inf4375.response :as response]
             [inf4375.request :as request]))
 
 (def service-routes
@@ -18,16 +17,15 @@
 
       ["tweets" {"POST" controller/post-user-tweet
                  "GET" controller/get-user-tweets}
-       ["#tweet-id" {"GET" controller/get-user-tweets
-                     "DELETE" :impl}]]
+       ["#tweet-id" {"GET" controller/get-user-tweets}]]
 
       ["retweets" {}
-       ["#tweet-id" {"PUT" :impl
-                     "DELETE" :impl}]]
+       ["#tweet-id" {"POST" controller/post-user-retweet
+                     "DELETE" controller/delete-user-retweet}]]
 
-      ["abonnements" {"GET" :impl}
-       ["#other-user-id"] {"PUT" :impl
-                           "DELETE" :impl}]]]]])
+      ["abonnements" {"GET" controller/get-user-subs}
+       ["#other-user-id" {"PUT" controller/put-user-sub
+                          "DELETE" controller/delete-user-subs}]]]]]])
 
 (defn run-server [port]
   "main server loop; will 404 if request is empty or not found"
@@ -78,4 +76,3 @@
   ([arg]
    (let [f (future (initials))
          s (run-server (Integer/parseInt arg))])))
-

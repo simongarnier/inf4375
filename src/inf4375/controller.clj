@@ -69,5 +69,41 @@
       (res/generate-response :404 {"message" "utilisateur introuvable"})
       (res/generate-response :200 {"feed" (user/feed user-id)}))))
 
+(defn put-user-sub [user-id other-user-id]
+  (if (or (nil? (user/fetch user-id)) (nil? (user/fetch other-user-id)))
+    (res/generate-response :404 {"message" "un ou plusieurs utilisateurs introuvables"})
+    (if (= user-id other-user-id)
+      (res/generate-response :400 {"message" "Un utilisateur ne peut s'abonner à lui-même"})
+      (res/generate-response :201 {"subscription-id" (sub/create-if-not-found! user-id other-user-id)}))))
+
+(defn get-user-subs [user-id]
+  (if (nil? (user/fetch user-id))
+    (res/generate-response :404 {"message" "utilisateur introuvable"})
+    (res/generate-response :200 {"subscriptions" (sub/fetch-for-user user-id)})))
+
+(defn delete-user-subs [user-id other-user-id]
+  (if (or (nil? (user/fetch user-id)) (nil? (user/fetch other-user-id)))
+    (res/generate-response :404 {"message" "un ou plusieurs utilisateurs introuvables"})
+    (let []
+      (sub/del! user-id other-user-id)
+      (res/generate-response :200 {"deleted-subscription" {"subscriber" user-id
+                                                           "subscribee" other-user-id}}))))
+
+(defn post-user-retweet [user-id tweet-id]
+  (if (nil? (user/fetch user-id))
+    (res/generate-response :404 {"message" "utilisateur introuvable"})
+    (if (nil? (tweet/fetch tweet-id))
+      (res/generate-response :404 {"message" "tweet introuvable"})
+      (if (user/tweet user-id tweet-id)
+        (res/generate-response :400 {"message" "Un utilisateur ne peut retweeter son propre tweet"})
+        (res/generate-response :201 {"tweet-id" (user/retweet-as! user-id tweet-id)})))))
+
+(defn delete-user-retweet [user-id tweet-id]
+  (if (nil? (user/fetch user-id))
+    (res/generate-response :404 {"message" "utilisateur introuvable"})
+    (if (nil? (tweet/fetch tweet-id))
+      (res/generate-response :404 {"message" "tweet introuvable"})
+      (res/generate-response :200 {"deleted-retweets" (user/undo-retweet! user-id tweet-id)}))))
+
 
 

@@ -23,7 +23,7 @@
 (defmethod match \# [node, str-val]
   "the numerical wildcard; will match any numerical value and return as int param
    Perfect for IDs"
-  (let [num-check (re-matcher #"[\d.]+" str-val)
+  (let [num-check (re-find #"[\d.]+" str-val)
         match (not (nil? num-check))
         param (if match
                 (list (Integer/parseInt str-val))
