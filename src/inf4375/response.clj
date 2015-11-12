@@ -13,6 +13,7 @@
 (def content-type "content-type: application/json; charset=utf-8")
 
 (defn generate-response [code content]
+  "Return a json response containing the given content and http code"
   (let [status (get status-for-code code)
         body (json/write-str {"status" status
                               "payload" content})]

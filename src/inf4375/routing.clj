@@ -1,4 +1,4 @@
-(ns inf4375.router
+(ns inf4375.routing
   (:gen-class))
 
 (def ^:dynamic routes
@@ -8,17 +8,24 @@
   :unbound)
 
 (defn node-children [node]
+  "Children of the node"
   (-> node rest rest))
 
-(defn node-dict [node]
+(defn node-method [node]
+  "The map specifying each function for each http method"
   (second node))
 
-(defn node-res [node]
+(defn node-name [node]
+  "The name for this node"
   (first node))
 
 (defmulti match
+          "Match a node in the hierarchy with the provided string.
+           Will return a map containing the match outcome and, if
+           the match is succesful and if the node is a wildcard,
+           the param to be use."
           (fn [node, _]
-            (-> node node-res (get 0))))
+            (-> node node-name (get 0))))
 
 (defmethod match \# [node, str-val]
   "the numerical wildcard; will match any numerical value and return as int param
@@ -45,11 +52,13 @@
 
 (defmethod match :default [node, str-val]
   "match for an exact value"
-  {:match? (= (node-res node) str-val)
+  {:match? (= (node-name node) str-val)
    :param '()
    :node node})
 
 (defn route [resource method]
+  "Taking the route into account, return the function to be run and the
+   params to give to this function, for a given resource and method."
   (loop [res resource nodes routes params []]
     (let [matcher-results (map (fn [node] (match node (first res))) nodes)
           matches (filter (fn [result] (get result :match?)) matcher-results)]
@@ -57,7 +66,7 @@
         (let [match (first matches)
               selected-node (get match :node)
               params (concat params (:param match))
-              func (-> selected-node node-dict (get method))
+              func (-> selected-node node-method (get method))
               children (node-children selected-node)]
           (if-not (-> res rest empty?) ; check if we are not at the end of the uri
             (recur (rest res) children params)
@@ -65,4 +74,3 @@
               (list func params)
               (list unbound '()))))
         (list unbound '())))))
-

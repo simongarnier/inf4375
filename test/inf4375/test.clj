@@ -1,7 +1,7 @@
 (ns inf4375.test
   (:require [clojure.test :refer :all]
             [inf4375.core :refer :all]
-            [inf4375.router :as router]
+            [inf4375.routing :as router]
             [inf4375.model.tweet :as tweet]
             [inf4375.model.user :as user]))
 

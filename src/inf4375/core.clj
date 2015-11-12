@@ -8,6 +8,9 @@
             [inf4375.controller :as controller]
             [inf4375.request :as request]))
 
+;the route hierarchy.
+;Some sort of dsl understood by the router
+;check the router namespace for more info
 (def service-routes
   [
    ["" {}
@@ -28,7 +31,7 @@
                           "DELETE" controller/delete-user-subs}]]]]]])
 
 (defn run-server [port]
-  "main server loop; will 404 if request is empty or not found"
+  "Server loop"
   (println (format "server accepting request on %s" port))
   (loop [server (new ServerSocket port)]
     (let [socket (.accept server)]
@@ -42,8 +45,8 @@
                             (catch Exception json-e
                               nil))
               response (if (nil? parsed-body)
-                         (controller/resolve! service-routes (:method request) (:uri request))
-                         (controller/resolve! service-routes (:method request) (:uri request) [parsed-body]))]
+                         (controller/resolve-and-execute! service-routes (:method request) (:uri request))
+                         (controller/resolve-and-execute! service-routes (:method request) (:uri request) [parsed-body]))]
           (pp/pprint request)
           (.println out response)
           (.flush out)
@@ -53,6 +56,9 @@
           (recur server))))))
 
 (defn- initials []
+  "Create test users and tweet as them for some test tweet.
+   The sleep is used to have different timestamp on each tweet.
+   Intended to run on a different thread."
   (let [simon (inf4375.model.user/create! "simongarnier")
         camille (inf4375.model.user/create! "camillegarnier")]
     (Thread/sleep 1000)

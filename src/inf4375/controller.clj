@@ -6,22 +6,27 @@
 
             [inf4375.request :as req]
             [inf4375.response :as res]
-            [inf4375.router :as router]
+            [inf4375.routing :as routing]
 
             [clojure.string :as str]
             [clojure.data.json :as json]))
 
 (defn not-found [& args] ;any number of param because we don't care about arity
+  "the function to use when the outing fails"
   (res/generate-response :404 {"message" "ressource introuvable"}))
 
-(defn resolve!
+(defn resolve-and-execute!
   ([routes method resource]
-   (resolve! routes method resource []))
+   (resolve-and-execute! routes method resource []))
   ([routes method resource injected-params]
-    (binding [router/routes routes
-              router/unbound not-found]
+   "resolve a resource for the given route and methods and then return
+    the result of the function associated with this resource and method.
+    Param can also be injected, so extra param can be given to the called
+    function. Example of this injection include the body of a given request"
+    (binding [routing/routes routes
+              routing/unbound not-found]
       (let [resource-list (str/split resource #"/")
-            func-and-params (router/route
+            func-and-params (routing/route
                              (if (empty? resource-list)
                                [""]
                                resource-list)
@@ -30,6 +35,9 @@
             params (last func-and-params)]
         (apply function (concat params injected-params))))))
 
+;controller functions.
+;generally, there is one function for every resource and method combination
+;except where we can differantiate behavior with param arity.
 (defn get-users
   ([]
    (res/generate-response :200 {"users" (user/all)}))
@@ -104,6 +112,3 @@
     (if (nil? (tweet/fetch tweet-id))
       (res/generate-response :404 {"message" "tweet introuvable"})
       (res/generate-response :200 {"deleted-retweets" (user/undo-retweet! user-id tweet-id)}))))
-
-
-

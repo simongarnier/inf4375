@@ -3,22 +3,8 @@
   (:import (java.io BufferedReader))
   (:require [clojure.string :as str]))
 
-(defprotocol Parsed
-  (method [this])
-  (uri [this])
-  (version [this])
-  (headers [this])
-  (content-length [this]))
-
-(defrecord HttpRequest [method uri version headers]
-  Parsed
-  (method [this] method)
-  (uri [this] uri)
-  (version [this] version)
-  (headers [this] headers)
-  (content-length [this] (read-string (get headers :content-length "0"))))
-
 (defn- read-until-body [in]
+  "consume the buffer as line until a body is detected"
   (loop [lines []]
     (if (and
           (str/blank? (last lines))
@@ -27,12 +13,18 @@
       (recur (conj lines (.readLine in))))))
 
 (defn- read-body [in content-length]
+  "consume the buffer as character for the specified lenght"
   (let [body (char-array content-length)]
     (.read in body 0 content-length)
     (apply str body)))
 
 (defn- content-length [status-and-header]
-  (read-string (get (get status-and-header :headers) :content-length "0")))
+  "look for a content-length header, check if the value is numerical
+   and then return "
+  (let [length (get (get status-and-header :headers) :content-length "0")
+        valid (not (nil? (re-find #"[\d.]+" length)))]
+    (if valid
+      (read-string length))))
 
 (defn parse-status-and-header [lines]
   "Structure a http requests"
@@ -50,6 +42,7 @@
                       headers)}))
 
 (defn read-request [reader]
+  "return a map of the given request"
   (let [status-and-header (parse-status-and-header (read-until-body reader))
         content-length (content-length status-and-header)]
     (if (> content-length 0)
