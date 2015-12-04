@@ -12,7 +12,7 @@
             [clojure.data.json :as json]))
 
 (defn not-found [& args] ;any number of param because we don't care about arity
-  "the function to use when the outing fails"
+  "the function to use when the routing fails"
   (res/generate-response :404 {"message" "ressource introuvable"}))
 
 (defn resolve-and-execute!
@@ -70,6 +70,16 @@
          (if (nil? tweet)
            (res/generate-response :404 {"message" "tweet introuvable"})
            (res/generate-response :200 {"tweet" tweet})))))))
+
+(defn delete-user-tweets [user-id tweet-id]
+  (let [user (user/fetch user-id)]
+    (if (nil? user)
+      (res/generate-response :404 {"message" "utilisateur introuvable"})
+      (if (nil? (user/tweet user-id tweet-id))
+        (res/generate-response :200 {"message" "tweet déja supprimé ou introuvable pour l'utilisateur"})
+        (let []
+          (tweet/del! tweet-id)
+          (res/generate-response :200 {"message" "tweet supprimé"}))))))
 
 (defn get-user-feed [user-id]
   (let [user (user/fetch user-id)]

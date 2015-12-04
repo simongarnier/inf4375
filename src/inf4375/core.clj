@@ -20,7 +20,8 @@
 
       ["tweets" {"POST" controller/post-user-tweet
                  "GET" controller/get-user-tweets}
-       ["#tweet-id" {"GET" controller/get-user-tweets}]]
+       ["#tweet-id" {"GET" controller/get-user-tweets
+                     "DELETE" controller/delete-user-tweets}]]
 
       ["retweets" {}
        ["#tweet-id" {"POST" controller/post-user-retweet
