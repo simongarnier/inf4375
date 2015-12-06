@@ -15,7 +15,7 @@
   [
    ["" {}
     ["utilisateurs" {"GET" controller/get-users}
-     ["#user-id" {"GET" controller/get-users}
+     ["#user-id|:user-id" {"GET" controller/get-users}
       ["fil" {"GET" controller/get-user-feed}]
 
       ["tweets" {"POST" controller/post-user-tweet

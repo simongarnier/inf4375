@@ -1,5 +1,6 @@
 (ns inf4375.routing
-  (:gen-class))
+  (:gen-class)
+  (:require [clojure.string :as str]))
 
 (def ^:dynamic routes
   [])
@@ -19,6 +20,14 @@
   "The name for this node"
   (first node))
 
+(defn expand-splitable-node [node]
+  "If the node name has on or many | in it,
+   expand the node into an array of node(of for each terms)"
+  (map (fn [name] (concat [name (node-method node)] (node-children node))) (str/split (node-name node) #"\|")))
+
+(defn- numerical? [str-val]
+  (not (nil? (re-find #"[\d.]+" str-val))))
+
 (defmulti match
           "Match a node in the hierarchy with the provided string.
            Will return a map containing the match outcome and, if
@@ -30,8 +39,7 @@
 (defmethod match \# [node, str-val]
   "the numerical wildcard; will match any numerical value and return as int param
    Perfect for IDs"
-  (let [num-check (re-find #"[\d.]+" str-val)
-        match (not (nil? num-check))
+  (let [match (and (not (empty? str-val)) (numerical? str-val))
         param (if match
                 (list (Integer/parseInt str-val))
                 (list))]
@@ -42,7 +50,7 @@
 (defmethod match \: [node, str-val]
   "the string wildcard; will match any non-empty string and return as string param
    Perfect for handles"
-  (let [match (empty? str-val)
+  (let [match (and (not (empty? str-val)) (not (numerical? str-val)))
         param (if match
                 (list str-val)
                 (list))]
@@ -60,7 +68,8 @@
   "Taking the route into account, return the function to be run and the
    params to give to this function, for a given resource and method."
   (loop [res resource nodes routes params []]
-    (let [matcher-results (map (fn [node] (match node (first res))) nodes)
+    (let [expanded-nodes (reduce (fn [ns, node] (concat ns (expand-splitable-node node))) [] nodes)
+          matcher-results (map (fn [node] (match node (first res))) expanded-nodes)
           matches (filter (fn [result] (get result :match?)) matcher-results)]
       (if (-> matches count (= 1)) ; check for a single match on current level
         (let [match (first matches)

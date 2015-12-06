@@ -32,8 +32,24 @@
 (defn all []
   (vals @users))
 
-(defn fetch [user-id]
+(defmulti fetch
+          (fn [id-or-handle]
+            (type id-or-handle)))
+
+(defmethod fetch Long [user-id]
   (get @users user-id))
+
+(defmethod fetch Integer [user-id]
+  (get @users user-id))
+
+(defmethod fetch String [handle]
+  (first (filter (fn [user] (= (:handle user) handle)) (vals @users))))
+
+(defmethod fetch :default [_]
+  nil)
+
+(defn as-user-id [user-id-or-handle]
+  (:id (fetch user-id-or-handle)))
 
 (defn feed [user-id]
   (sort-by (fn [tweet] (* (:timestamp tweet) -1))
