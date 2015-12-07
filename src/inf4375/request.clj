@@ -29,7 +29,8 @@
 (defn parse-status-and-header [lines]
   "Structure a http requests"
   (let [[request-line & headers] lines
-        [method uri version] (str/split request-line #" ")]
+        [method uri version] (str/split request-line #" ")
+        uri (first (str/split uri #"\?"))]
     {:method method
      :uri uri
      :version uri
