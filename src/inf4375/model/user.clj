@@ -78,12 +78,19 @@
     (associate! user-retweets user-id retweet-id)
     retweet-id))
 
-(defn undo-retweet! [user-id, tweet-id]
+(defn undo-tweet! [user-id tweet-id]
+  {:pre [(not (nil? (fetch user-id)))
+         (not (nil? (tweet/fetch tweet-id)))]}
+  (dissociate! user-tweets user-id tweet-id)
+  (tweet/del! tweet-id))
+
+(defn undo-retweet! [user-id tweet-id]
   "undo all retweet retweeting the specified tweet for the user-id
    and return the list of undone retweet"
   (let [retweet-list (filter
                        (fn [retweet] (= (:tweet-id retweet) tweet-id))
                        (map #(retweet/fetch %) (get @user-retweets user-id)))]
+    {:pre [(not (nil? (fetch user-id)))]}
     (map (fn [retweet]
            (let [id (:id retweet)]
              (dissociate! user-retweets user-id id)

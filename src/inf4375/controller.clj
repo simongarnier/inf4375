@@ -79,7 +79,7 @@
       (if (nil? (user/tweet (user/as-user-id user-id) tweet-id))
         (res/generate-response :200 {"message" "tweet déja supprimé ou introuvable pour l'utilisateur"})
         (let []
-          (tweet/del! tweet-id)
+          (user/undo-tweet! user-id tweet-id)
           (res/generate-response :200 {"message" "tweet supprimé"}))))))
 
 (defn get-user-feed [user-id]
