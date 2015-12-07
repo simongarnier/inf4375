@@ -21,6 +21,7 @@
                        (str/join [version " " status])
                        content-type
                        (format "content-length: %s" (count body))
+                       "Access-Control-Allow-Origin: http://localhost:8080"
                        ""
                        body
                        ""))))
