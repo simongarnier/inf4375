@@ -16,6 +16,12 @@
   (println "the request did not match any routes")
   (res/generate-response :404 {"message" "ressource introuvable"}))
 
+(defn options [& args]
+  "the function to use when the client does a OPTIONS request"
+  (println "the client did a OPTIONS request")
+  (println "answering with our access control params")
+  (res/generate-options-response))
+
 (defn resolve-and-execute!
   ([routes method resource]
    (resolve-and-execute! routes method resource []))
@@ -25,7 +31,8 @@
     Param can also be injected, so extra param can be given to the called
     function. Example of this injection include the body of a given request"
     (binding [routing/routes routes
-              routing/unbound not-found]
+              routing/unbound not-found
+              routing/options options]
       (let [resource-list (str/split resource #"/")
             func-and-params (routing/route
                              (if (empty? resource-list)

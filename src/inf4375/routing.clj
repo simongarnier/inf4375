@@ -8,6 +8,9 @@
 (def ^:dynamic unbound
   :unbound)
 
+(def ^:dynamic options
+  :options)
+
 (defn node-children [node]
   "Children of the node"
   (-> node rest rest))
@@ -67,19 +70,22 @@
 (defn route [resource method]
   "Taking the route into account, return the function to be run and the
    params to give to this function, for a given resource and method."
-  (loop [res resource nodes routes params []]
-    (let [expanded-nodes (reduce (fn [ns, node] (concat ns (expand-splitable-node node))) [] nodes)
-          matcher-results (map (fn [node] (match node (first res))) expanded-nodes)
-          matches (filter (fn [result] (get result :match?)) matcher-results)]
-      (if (-> matches count (= 1)) ; check for a single match on current level
-        (let [match (first matches)
-              selected-node (get match :node)
-              params (concat params (:param match))
-              func (-> selected-node node-method (get method))
-              children (node-children selected-node)]
-          (if-not (-> res rest empty?) ; check if we are not at the end of the uri
-            (recur (rest res) children params)
-            (if-not (nil? func) ; check if we have a function for the method
-              (list func params)
-              (list unbound '()))))
-        (list unbound '())))))
+  (if (= method "OPTIONS")
+    (list options '())
+    (loop [res resource nodes routes params []]
+      (let [expanded-nodes (reduce (fn [ns, node] (concat ns (expand-splitable-node node))) [] nodes)
+            matcher-results (map (fn [node] (match node (first res))) expanded-nodes)
+            matches (filter (fn [result] (get result :match?)) matcher-results)]
+        (if (-> matches count (= 1)) ; check for a single match on current level
+          (let [match (first matches)
+                selected-node (get match :node)
+                params (concat params (:param match))
+                func (-> selected-node node-method (get method))
+                children (node-children selected-node)]
+            (if-not (-> res rest empty?) ; check if we are not at the end of the uri
+              (recur (rest res) children params)
+              (if-not (nil? func) ; check if we have a function for the method
+                (list func params)
+                (list unbound '()))))
+          (list unbound '())))))
+  )
