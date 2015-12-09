@@ -29,7 +29,8 @@
 
       ["abonnements" {"GET" controller/get-user-subs}
        ["#other-user-id" {"PUT" controller/put-user-sub
-                          "DELETE" controller/delete-user-subs}]]]]]])
+                          "DELETE" controller/delete-user-subs}]]
+      ["abonnes" {"GET" controller/get-user-subscribers}]]]]])
 
 (defn run-server [port]
   "Server loop"
@@ -61,7 +62,14 @@
    The sleep is used to have different timestamp on each tweet.
    Intended to run on a different thread."
   (let [simon (inf4375.model.user/create! "simongarnier")
-        camille (inf4375.model.user/create! "camillegarnier")]
+        camille (inf4375.model.user/create! "camillegarnier")
+        kerbkerb (inf4375.model.user/create! "kerbkerb")
+        nic-lovin (inf4375.model.user/create! "nic-lovin")
+        madeinqc (inf4375.model.user/create! "madeinqc")
+        thepape (inf4375.model.user/create! "thepape")
+        mcaead10 (inf4375.model.user/create! "mcaead10")
+        marctrem (inf4375.model.user/create! "marctrem")
+        jcbrinfo (inf4375.model.user/create! "jcbrinfo")]
     (Thread/sleep 1000)
     (inf4375.model.user/tweet-as! simon "my first tweet")
     (Thread/sleep 1000)

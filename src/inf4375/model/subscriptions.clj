@@ -25,10 +25,16 @@
         id)     ;if created, return the id of the new sub
       found)))  ;if found, return the id of the existing sub
 
-(defn fetch-for-user [user-id]
-  (map (fn [sub] (get sub :other-user-id ))
+(defn fetch-subscriptions-for-user [user-id]
+  (map (fn [sub] (:other-user-id sub))
        (filter
-         (fn [sub] (= (get sub :user-id) user-id))
+         (fn [sub] (= (:user-id sub ) user-id))
+         (vals @subscriptions))))
+
+(defn fetch-subscribers-for-user [user-id]
+  (map (fn [sub] (:user-id sub))
+       (filter
+         (fn [sub] (= (:other-user-id sub) user-id))
          (vals @subscriptions))))
 
 (defn del! [user-id other-user-id]

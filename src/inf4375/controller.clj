@@ -105,7 +105,12 @@
 (defn get-user-subs [user-id]
   (if (nil? (user/fetch user-id))
     (res/generate-response :404 {"message" "utilisateur introuvable"})
-    (res/generate-response :200 {"subscriptions" (sub/fetch-for-user (user/as-user-id user-id))})))
+    (res/generate-response :200 {"subscriptions" (sub/fetch-subscriptions-for-user (user/as-user-id user-id))})))
+
+(defn get-user-subscribers [user-id]
+  (if (nil? (user/fetch user-id))
+    (res/generate-response :404 {"message" "utilisateur introuvable"})
+    (res/generate-response :200 {"subscribers" (sub/fetch-subscribers-for-user (user/as-user-id user-id))})))
 
 (defn delete-user-subs [user-id other-user-id]
   (if (or (nil? (user/fetch user-id)) (nil? (user/fetch other-user-id)))
