@@ -7,7 +7,7 @@ You'll need [Clojure](http://clojure.org/getting_started) and [Leiningen](http:/
 
     $ lein run [port]
 
-Where port is the port number you want the server to listen on. Defaults to 8080.
+Where port is the port number you want the server to listen on. Defaults to 3000.
 
 ## Assignment
 The [assignment](http://guillemette.org/uqam/inf4375/)

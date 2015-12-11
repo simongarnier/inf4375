@@ -87,7 +87,7 @@
 (defn -main
   ([]
    (let [f (future (initials))
-         s (run-server 8080)]))
+         s (run-server 3000)]))
   ([arg]
    (let [f (future (initials))
          s (run-server (Integer/parseInt arg))])))
